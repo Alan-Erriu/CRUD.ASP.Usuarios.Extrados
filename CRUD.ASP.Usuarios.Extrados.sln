@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34202.233
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CRUD.ASP.Usuarios.Extrados", "CRUD.ASP.Usuarios.Extrados\CRUD.ASP.Usuarios.Extrados.csproj", "{D6A720C7-FFF1-4D3E-AFBC-36DEA9461648}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectionDB", "ConnectionDB\ConnectionDB.csproj", "{ED18E442-7CDD-4628-81D7-3C29C1B920FE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D6A720C7-FFF1-4D3E-AFBC-36DEA9461648}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A720C7-FFF1-4D3E-AFBC-36DEA9461648}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6A720C7-FFF1-4D3E-AFBC-36DEA9461648}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6A720C7-FFF1-4D3E-AFBC-36DEA9461648}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED18E442-7CDD-4628-81D7-3C29C1B920FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED18E442-7CDD-4628-81D7-3C29C1B920FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED18E442-7CDD-4628-81D7-3C29C1B920FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED18E442-7CDD-4628-81D7-3C29C1B920FE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BC7563E8-B2E8-4674-9CF6-9007072B5F88}
+	EndGlobalSection
+EndGlobal
