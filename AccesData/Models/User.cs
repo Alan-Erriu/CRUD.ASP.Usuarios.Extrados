@@ -1,4 +1,4 @@
-﻿namespace CRUD.ASP.Usuarios.Extrados.Models
+﻿namespace AccesData.Models
 {
     public class User
     {
@@ -12,7 +12,7 @@
         public string password_user { get; set; }
 
 
-       
+
     }
-   
+
 }
