@@ -1,5 +1,6 @@
-﻿using CRUD.ASP.Usuarios.Extrados.Data;
-using CRUD.ASP.Usuarios.Extrados.Models;
+﻿using AccesData.Data;
+using AccesData.Interfaces;
+using AccesData.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
 
