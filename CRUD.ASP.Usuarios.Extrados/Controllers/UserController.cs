@@ -1,4 +1,5 @@
 ﻿using AccesData.Data;
+using AccesData.DTOs;
 using AccesData.Interfaces;
 using AccesData.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -21,82 +22,81 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         // crear usuario 
         [HttpPost("create")]
 
-        public async Task<IActionResult> CreateUser(User newUser)
+        public async Task<IActionResult> CreateUser(CreateUserRequest createUserRequest)
         {
             try
             {
-                if (newUser.name_user == null || newUser.mail_user == null || newUser.password_user == null){ return StatusCode(400, "Solicitud incorrecta, completar todos los campos"); }
+                if (createUserRequest.name_user == null || createUserRequest.mail_user == null || createUserRequest.password_user == null) return StatusCode(400, "Incorrect request: name, mail and password is required");
+                if (createUserRequest.name_user == "" || createUserRequest.mail_user == "" || createUserRequest.password_user == "") return StatusCode(400, "Incorrect request: name, mail and password is empty");
                 DataUser dataUser = new DataUser(_dbConnection.chainSQL());
-                var user = await dataUser.DCreateUser(newUser.name_user, newUser.mail_user, newUser.password_user);
+                var user = await dataUser.DCreateUser(createUserRequest);
                 return Ok(user);
 
             }
             catch (Exception Ex)
             {
-                Console.WriteLine($"Error al crear un nuevo usuario {Ex.Message}");
-                return StatusCode(500, "Error al crear un nuevo usuario" + Ex.Message);
+                Console.WriteLine($"Error creating a new user {Ex.Message}");
+                return StatusCode(500, "Server error:" + Ex.Message);
             }
 
 
         }
 
         // obtener usuario por id
-        [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetUserById(int id)
+        [HttpPost("get")]
+        public async Task<IActionResult> GetUserById([FromBody] GetUserByIdRequest getUserByIdRequest)
         {
             try
             {
                 DataUser dataUser = new DataUser(_dbConnection.chainSQL());
-                User user = await dataUser.DGetUserById(id);
-                if (user == null) { return StatusCode(404, $"usuario no encontrado id:{id}"); }
-
+                GetUserByIdResponse user = await dataUser.DGetUserByIdProtected(getUserByIdRequest);
+                if (user.msg == "User not found") return StatusCode(404, user);
                 return Ok(user);
             }
             catch (Exception Ex)
             {
-                Console.WriteLine($"Error al obtener usuario {Ex.Message}");
-                return StatusCode(500, "Error al obtener usuario" + Ex.Message);
+                Console.WriteLine($"Error getting user {Ex.Message}");
+                return StatusCode(500, "Server error:"  + Ex.Message);
             }
         }
 
         // actualizar usuario por id
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateUserById([FromBody] User userParameters)
+        public async Task<IActionResult> UpdateUserById([FromBody] UpdateUserByIdRequest updateUserByIdRequest)
         {
-            if (userParameters.id_user == 0 || userParameters.name_user == null) { return StatusCode(400, "Debe ingresar id y un nuevo nombre"); }
+            if (updateUserByIdRequest.id_user == 0 || updateUserByIdRequest.name_user == "")
+            return StatusCode(400, new GetUserByIdResponse { msg = "Name and id are required", result = false }); 
             try
             {
                 DataUser dataUser = new DataUser(_dbConnection.chainSQL());
-                var user = await dataUser.DGetUserById(userParameters.id_user);
-                if (user == null) { return StatusCode(404, $"usuario no encontrado {userParameters.id_user}"); }
-                await dataUser.DUpdateUserById(userParameters.id_user, userParameters.name_user);
-                return Ok($"Usuario {userParameters.id_user}, Nombre modificado a {userParameters.name_user} ");
+               var userModifycated = await dataUser.DUpdateUserById(updateUserByIdRequest);
+                if (userModifycated == 0) { return StatusCode(404, $"User not found {updateUserByIdRequest.id_user}");}
+                return Ok($"User {updateUserByIdRequest.id_user}, Name modified to {updateUserByIdRequest.name_user} ");
             }
             catch (Exception Ex)
             {
-                Console.WriteLine($"Error al editar usuario {Ex.Message}");
-                return StatusCode(500, "Error al editar usuario" + Ex.Message);
+                Console.WriteLine($"Error editing user {Ex.Message}");
+                return StatusCode(500, "Server Error" + Ex.Message);
             }
         }
 
         // borrar usuario por id
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> deleteUserById(int id)
+        [HttpDelete("delete/{id_user}")]
+        public async Task<IActionResult> DeleteUserById(int id_user)
         {
-            if (id == 0) { return StatusCode(400, "Debe ingresar un valido id"); }
             try
             {
                 DataUser dataUser = new DataUser(_dbConnection.chainSQL());
-                var user = await dataUser.DGetUserById(id);
-                if (user == null) { return StatusCode(404, $"usuario no encontrado {id}"); }
+               var user =  await dataUser.DDeleteUserById(id_user);
+              
+                if (user == 0) { return StatusCode(404, $"User not found {id_user}");}
 
-                await dataUser.DDeleteUserById(id);
                 return Ok(user);
             }
             catch (Exception Ex)
             {
-                Console.WriteLine($"Error al borrar usuario {Ex.Message}");
-                return StatusCode(500, "Error al borrar usuario" + Ex.Message);
+                Console.WriteLine($"Error deleting user {Ex.Message}");
+                return StatusCode(500, "Server Error" + Ex.Message);
             }
         }
 

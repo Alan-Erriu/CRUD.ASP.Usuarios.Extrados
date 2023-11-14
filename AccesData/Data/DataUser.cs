@@ -1,5 +1,7 @@
-﻿using AccesData.Models;
+﻿using AccesData.DTOs;
+using AccesData.Models;
 using Dapper;
+using System;
 using System.Data.SqlClient;
 
 namespace AccesData.Data
@@ -8,88 +10,120 @@ namespace AccesData.Data
     public class DataUser
     {
 
-
         private string _chainSQL { get; set; }
         public DataUser(string chainSQL)
         {
             _chainSQL = chainSQL;
         }
-        public async Task<User> DCreateUser(string name, string mail, string password)
+        public async Task<CreateUserResponse> DCreateUser(CreateUserRequest createUserRequest)
         {
-            var user = new User();
+
+            
             try
             {
 
                 using (var connection = new SqlConnection(_chainSQL))
                 {
-                    var parameters = new { Name = name, Mail = mail, Password = password };
+                    var parameters = new { Name = createUserRequest.name_user, Mail = createUserRequest.mail_user, Password = createUserRequest.password_user };
                     var sqlInsert = "INSERT INTO [user] (name_user, mail_user, password_user ) VALUES (@Name, @Mail, @Password)";
                     var sqlSelect = "select id_user from [user] where mail_user =@Mail and password_user =@Password";
 
                     var queryInsert = await connection.ExecuteAsync(sqlInsert, parameters);
-                    var querySelect = await connection.QueryFirstOrDefaultAsync<int>(sqlSelect, new { Mail = mail, Password = password });
+                    var querySelect = await connection.QueryFirstOrDefaultAsync<int>(sqlSelect, new { Mail = createUserRequest.mail_user, Password = createUserRequest.password_user });
 
 
-                    return new User { id_user = querySelect, name_user = name, mail_user = mail };
+                    return new CreateUserResponse { id_user = querySelect, name_user = createUserRequest.name_user, mail_user = createUserRequest.mail_user,msg ="Ok", result = true };
                 }
             }
             catch (Exception ex)
             {
 
                 Console.WriteLine($"Error al intentar crear un nuevo usuario {ex.Message}");
-                return user;
+                return new CreateUserResponse { result = false , msg= ex.Message };
 
             }
         }
 
 
-        public async Task<User> DGetUserById(int id)
+        public async Task<GetUserByIdResponse> DGetUserByIdProtected(GetUserByIdRequest getUserByIdRequest)
         {
             User user = null;
             try
             {
                 using (var connection = new SqlConnection(_chainSQL))
                 {
-                    var parameters = new { Id = id };
-                    var sql = "SELECT id_user, name_user, mail_user FROM [user] WHERE id_user = @Id";
+                    var parameters = new { Id = getUserByIdRequest.id_user };
+                    var sql = "SELECT id_user, name_user, mail_user, password_user FROM [user] WHERE id_user = @Id";
                     user = await connection.QueryFirstOrDefaultAsync<User>(sql, parameters);
                 }
+                if (user == null)
 
-                return user;
+                    return new GetUserByIdResponse { msg = "User not found", result = false };
+
+                if (user.password_user != getUserByIdRequest.password_user)
+
+                    return new GetUserByIdResponse { msg = "Incorrect password", result = false };
+
+                return new GetUserByIdResponse { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, msg = "OK", result = true };
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al intentar obtener un usuario por ID: {ex.Message}");
+                Console.WriteLine($"Error when trying to get a user by ID: {ex.Message}");
                 return null;
             }
-        }
-
-
-        public async Task DUpdateUserById(int id, string name)
+        } 
+        public async Task<GetUserByIdResponse> DGetUserById(int id_user)
         {
-
+            User user = null;
             try
             {
                 using (var connection = new SqlConnection(_chainSQL))
                 {
-                    var parameters = new { Name = name, Id = id };
+                    var parameters = new { Id = id_user };
+                    var sql = "SELECT id_user, name_user, mail_user FROM [user] WHERE id_user = @Id";
+                    user = await connection.QueryFirstOrDefaultAsync<User>(sql, parameters);
+                }
+                if (user == null)
+
+                    return new GetUserByIdResponse { msg = "User not found", result = false };
+
+
+                return new GetUserByIdResponse { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, msg = "OK", result = true };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error when trying to get a user by ID: {ex.Message}");
+                return new  GetUserByIdResponse { msg = ex.Message, result = false }; ;
+            }
+        }
+
+
+        public async Task<int> DUpdateUserById(UpdateUserByIdRequest updateUserByIdRequest)
+        {
+            var rowsAffected = 0;
+            try
+            {
+                using (var connection = new SqlConnection(_chainSQL))
+                {
+                    var parameters = new { Name = updateUserByIdRequest.name_user, Id = updateUserByIdRequest.id_user };
                     var sqlEdit = "UPDATE [user] SET name_user = @Name WHERE id_user = @Id";
 
-                    var rowsAffected = await connection.ExecuteAsync(sqlEdit, parameters);
+                    rowsAffected = await connection.ExecuteAsync(sqlEdit, parameters);
 
-                    Console.WriteLine($"{rowsAffected} fila afectada");
+
                 }
+                    return rowsAffected;
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al intentar actualizar  usuario por ID: {ex.Message}");
-
+                Console.WriteLine($"Error when trying to update user by ID: {ex.Message}");
+                return rowsAffected;
             }
         }
-        public async Task DDeleteUserById(int id)
+        public async Task<int> DDeleteUserById(int id)
         {
-
+            var rowsAffected = 0;
             try
             {
                 using (var connection = new SqlConnection(_chainSQL))
@@ -97,16 +131,18 @@ namespace AccesData.Data
 
                     var sql = "delete from [user] WHERE id_user = @Id";
 
-                    var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id });
+                     rowsAffected = await connection.ExecuteAsync(sql, new { Id = id });
 
                     Console.WriteLine($"{rowsAffected} fila afectada");
+
+                    return rowsAffected;
                 }
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al intentar borrar un usuario por ID: {ex.Message}");
-
+                return rowsAffected;
             }
         }
 
