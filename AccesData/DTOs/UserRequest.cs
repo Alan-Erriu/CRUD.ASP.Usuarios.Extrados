@@ -2,13 +2,7 @@
 
 namespace AccesData.DTOs
 {
-    public class UserRequest
-    {
-        public int id_user { get; set; }
 
-        public string password_user { get; set; }
-
-    }
 
     public class GetUserByIdRequest
     {
@@ -35,5 +29,5 @@ namespace AccesData.DTOs
         public string password_user { get; set; }
     }
 
-  
+
 }

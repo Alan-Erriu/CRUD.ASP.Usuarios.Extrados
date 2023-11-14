@@ -1,8 +1,9 @@
 ﻿using AccesData.Data;
 using AccesData.DTOs;
 using AccesData.Interfaces;
-using AccesData.Models;
 using Microsoft.AspNetCore.Mvc;
+using Services.Interfaces;
+using Services.Security;
 
 namespace CRUD.ASP.Usuarios.Extrados.Controllers
 {
@@ -15,23 +16,26 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
 
         private IConfigSqlConnect _dbConnection;
 
-        public UserController(IConfigSqlConnect dbConnection)
+        private IHashService _hashService;
+
+        public UserController(IConfigSqlConnect dbConnection, IHashService hashService)
         {
             _dbConnection = dbConnection;
+            _hashService = hashService;
         }
         // crear usuario 
         [HttpPost("create")]
 
         public async Task<IActionResult> CreateUser(CreateUserRequest createUserRequest)
         {
+            if (string.IsNullOrEmpty(createUserRequest.name_user) || string.IsNullOrEmpty(createUserRequest.mail_user) || string.IsNullOrEmpty(createUserRequest.password_user))
+                return BadRequest(new CreateUserResponse { msg = "Name, mail, and password are required", result = false });
+
             try
             {
-                if (createUserRequest.name_user == null || createUserRequest.mail_user == null || createUserRequest.password_user == null) return StatusCode(400, "Incorrect request: name, mail and password is required");
-                if (createUserRequest.name_user == "" || createUserRequest.mail_user == "" || createUserRequest.password_user == "") return StatusCode(400, "Incorrect request: name, mail and password is empty");
-                DataUser dataUser = new DataUser(_dbConnection.chainSQL());
+                DataUser dataUser = new DataUser(_dbConnection.chainSQL(), _hashService);
                 var user = await dataUser.DCreateUser(createUserRequest);
                 return Ok(user);
-
             }
             catch (Exception Ex)
             {
@@ -43,20 +47,24 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         }
 
         // obtener usuario por id
-        [HttpPost("get")]
+        [HttpPost("getuser")]
         public async Task<IActionResult> GetUserById([FromBody] GetUserByIdRequest getUserByIdRequest)
         {
+            if (getUserByIdRequest.id_user == 0 || string.IsNullOrEmpty(getUserByIdRequest.password_user))
+                return BadRequest(new GetUserByIdResponse { msg = "id and password are required", result = false });
+
             try
             {
-                DataUser dataUser = new DataUser(_dbConnection.chainSQL());
+                DataUser dataUser = new DataUser(_dbConnection.chainSQL(), _hashService);
                 GetUserByIdResponse user = await dataUser.DGetUserByIdProtected(getUserByIdRequest);
-                if (user.msg == "User not found") return StatusCode(404, user);
+                if (user.msg == "User not found") return NotFound(user);
+                if (user.msg == "Incorrect password") return BadRequest(user);
                 return Ok(user);
             }
             catch (Exception Ex)
             {
                 Console.WriteLine($"Error getting user {Ex.Message}");
-                return StatusCode(500, "Server error:"  + Ex.Message);
+                return StatusCode(500, "Server error:" + Ex.Message);
             }
         }
 
@@ -65,12 +73,12 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         public async Task<IActionResult> UpdateUserById([FromBody] UpdateUserByIdRequest updateUserByIdRequest)
         {
             if (updateUserByIdRequest.id_user == 0 || updateUserByIdRequest.name_user == "")
-            return StatusCode(400, new GetUserByIdResponse { msg = "Name and id are required", result = false }); 
+                return StatusCode(400, new GetUserByIdResponse { msg = "Name and id are required", result = false });
             try
             {
-                DataUser dataUser = new DataUser(_dbConnection.chainSQL());
-               var userModifycated = await dataUser.DUpdateUserById(updateUserByIdRequest);
-                if (userModifycated == 0) { return StatusCode(404, $"User not found {updateUserByIdRequest.id_user}");}
+                DataUser dataUser = new DataUser(_dbConnection.chainSQL(), _hashService);
+                var userModifycated = await dataUser.DUpdateUserById(updateUserByIdRequest);
+                if (userModifycated == 0) { return StatusCode(404, $"User not found {updateUserByIdRequest.id_user}"); }
                 return Ok($"User {updateUserByIdRequest.id_user}, Name modified to {updateUserByIdRequest.name_user} ");
             }
             catch (Exception Ex)
@@ -84,14 +92,15 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         [HttpDelete("delete/{id_user}")]
         public async Task<IActionResult> DeleteUserById(int id_user)
         {
+            if (id_user == 0) return BadRequest("id is required");
             try
             {
-                DataUser dataUser = new DataUser(_dbConnection.chainSQL());
-               var user =  await dataUser.DDeleteUserById(id_user);
-              
-                if (user == 0) { return StatusCode(404, $"User not found {id_user}");}
+                DataUser dataUser = new DataUser(_dbConnection.chainSQL(), _hashService);
+                var user = await dataUser.DDeleteUserById(id_user);
 
-                return Ok(user);
+                if (user == 0) { return StatusCode(404, $"User not found {id_user}"); }
+
+                return Ok("user deleted");
             }
             catch (Exception Ex)
             {

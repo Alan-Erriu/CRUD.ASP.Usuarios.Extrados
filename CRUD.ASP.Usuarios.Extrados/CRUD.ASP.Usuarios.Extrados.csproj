@@ -12,10 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AccesData\AccesData.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\Services\Services.csproj" />
   </ItemGroup>
 
 </Project>
