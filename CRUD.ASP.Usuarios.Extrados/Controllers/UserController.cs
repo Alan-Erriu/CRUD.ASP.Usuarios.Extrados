@@ -1,39 +1,41 @@
 ﻿using AccesData.DTOs;
 using AccesData.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using Services.UserService;
 
 namespace CRUD.ASP.Usuarios.Extrados.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-
+ 
 
     public class UserController : ControllerBase
     {
 
-        private IConfigSqlConnect _dbConnection;
-
+        private IUserService _userService;
+       
         private IHashService _hashService;
 
-        public UserController(IConfigSqlConnect dbConnection, IHashService hashService)
-        {
-            _dbConnection = dbConnection;
+        public UserController( IHashService hashService, IUserService userService)
+        {           
             _hashService = hashService;
+            _userService = userService;
         }
-        // crear usuario 
+        // crear usuario
+        [Authorize]
         [HttpPost("create")]
 
-        public async Task<IActionResult> CreateUser(CreateUserDTO createUserRequest)
+        public async Task<IActionResult> CreateUser(CreateUserRequestDTO createUserRequest)
         {
             if (string.IsNullOrEmpty(createUserRequest.name_user) || string.IsNullOrEmpty(createUserRequest.mail_user) || string.IsNullOrEmpty(createUserRequest.password_user))
                 return BadRequest(new CreateUserDTO { msg = "Name, mail, and password are required", result = false });
-
+            if (!_userService.IsValidEmail(createUserRequest.mail_user)) return BadRequest(new CreateUserDTO { msg = "Invalid email format", result = false });
             try
             {
-                UserService dataUser = new UserService(_dbConnection.chainSQL(), _hashService);
-                CreateUserDTO user = await dataUser.CreateUserService(createUserRequest);
+                
+                CreateUserDTO user = await _userService.CreateUserService(createUserRequest);
+                if (user.msg == "The email is already in use") return Conflict(user);
                 return Ok(user);
             }
             catch (Exception Ex)
@@ -46,6 +48,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         }
 
         // obtener usuario por id
+        [Authorize]
         [HttpPost("getuser")]
         public async Task<IActionResult> GetUserById([FromBody] GetUserByIdRequestDTO getUserByIdRequestDTO)
         {
@@ -53,9 +56,8 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
                 return BadRequest(new GetUserByIdDTO { msg = "id and password are required", result = false });
 
             try
-            {
-                UserService dataUser = new UserService(_dbConnection.chainSQL(), _hashService);
-                GetUserByIdDTO user = await dataUser.GetUserByIdProtectedService(getUserByIdRequestDTO);
+            {             
+                GetUserByIdDTO user = await _userService.GetUserByIdProtectedService(getUserByIdRequestDTO);
                 if (user.msg == "User not found") return NotFound(user);
                 if (user.msg == "Incorrect password") return BadRequest(user);
                 return Ok(user);
@@ -68,6 +70,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         }
 
         // actualizar usuario por id
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> UpdateUserById([FromBody] UpdateUserRequestDTO updateUserRequestDTO)
         {
@@ -75,10 +78,10 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
                 return StatusCode(400, new GetUserByIdDTO { msg = "Name and id are required", result = false });
             try
             {
-                UserService dataUser = new UserService(_dbConnection.chainSQL(), _hashService);
-                var userModifycated = await dataUser.UpdateUserByIdService(updateUserRequestDTO);
+             
+                var userModifycated = await _userService.UpdateUserByIdService(updateUserRequestDTO);
                 if (userModifycated == 0) { return StatusCode(404, $"User not found id: {updateUserRequestDTO.id_user}"); }
-                GetUserByIdDTO user = await dataUser.GetUserByIdService(updateUserRequestDTO.id_user);
+                GetUserByIdDTO user = await _userService.GetUserByIdService(updateUserRequestDTO.id_user);
                 
                 return Ok(user);
             }
@@ -90,14 +93,15 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         }
 
         // borrar usuario por id
+        [Authorize]
         [HttpDelete("delete/{id_user}")]
         public async Task<IActionResult> DeleteUserById(int id_user)
         {
             if (id_user == 0) return BadRequest("id is required");
             try
             {
-                UserService dataUser = new UserService(_dbConnection.chainSQL(), _hashService);
-                var user = await dataUser.DeleteUserByIdService(id_user);
+                
+                var user = await _userService.DeleteUserByIdService(id_user);
 
                 if (user == 0) { return StatusCode(404, $"User not found id: {id_user}"); }
 
@@ -109,9 +113,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
                 return StatusCode(500, "Server Error" + Ex.Message);
             }
         }
+  }
 
-
-
-
-    }
 }
+

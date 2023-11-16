@@ -1,29 +1,32 @@
 ﻿using AccesData.DTOs;
+using AccesData.Interfaces;
 using AccesData.Models;
 using AccesData.Repositories;
 using Dapper;
 using Services.Interfaces;
-using System.Data.SqlClient;
+
 
 namespace Services.UserService
 
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private IHashService _hashService;
-        private string _chainSQL { get; set; }
-        public UserService(string chainSQL, IHashService hashService)
+        private readonly IUserRepository _userRepository;
+        public UserService(IHashService hashService, IUserRepository userRepository)
         {
-            _chainSQL = chainSQL;
+            _userRepository = userRepository;
             _hashService = hashService;
         }
-        public async Task<CreateUserDTO> CreateUserService(CreateUserDTO createUserRequest)
+        public async Task<CreateUserDTO> CreateUserService(CreateUserRequestDTO createUserRequest)
         {
             try
             {
+                var emailAlreadyExists = await _userRepository.DataCompareEmailUserByMail(createUserRequest.mail_user);
+
+                if (emailAlreadyExists != null) return new CreateUserDTO{ result = false, msg = "The email is already in use" };
                 createUserRequest.password_user = _hashService.HashPasswordUser(createUserRequest.password_user);
-                UserRepository userRepository = new UserRepository(_chainSQL);
-                User newUser = await userRepository.DataCreateUser(createUserRequest);
+                User newUser = await _userRepository.DataCreateUser(createUserRequest);
                 return new CreateUserDTO { id_user = newUser.id_user, name_user = newUser.name_user, mail_user = newUser.mail_user, msg = "Ok", result = true };
             }
             catch (Exception ex)
@@ -37,15 +40,15 @@ namespace Services.UserService
         public async Task<GetUserByIdDTO> GetUserByIdProtectedService(GetUserByIdRequestDTO request)
         {
             try
-            {             
-                    UserRepository userRepository = new UserRepository(_chainSQL);                   
-                    User user = await userRepository.DataGetUserByID(request.id_user);
-                  
+            {
+
+                User user = await _userRepository.DataGetUserByID(request.id_user);
+
                 if (user == null) return new GetUserByIdDTO { msg = "User not found", result = false };
-                   
+
                 if (!_hashService.VerifyPassword(request.password_user, user.password_user)) return new GetUserByIdDTO { msg = "Incorrect password", result = false };
-               
-                return new GetUserByIdDTO { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, msg = "OK", result = true };   
+
+                return new GetUserByIdDTO { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, msg = "OK", result = true };
             }
             catch (Exception ex)
             {
@@ -55,11 +58,11 @@ namespace Services.UserService
         }
         public async Task<GetUserByIdDTO> GetUserByIdService(int id_user)
         {
-           
+
             try
             {
-                UserRepository userRepository = new UserRepository(_chainSQL);
-                User user = await userRepository.DataGetUserByID(id_user);
+
+                User user = await _userRepository.DataGetUserByID(id_user);
                 if (user == null) return new GetUserByIdDTO { msg = "User not found", result = false };
 
                 return new GetUserByIdDTO { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, msg = "OK", result = true };
@@ -78,11 +81,11 @@ namespace Services.UserService
             try
             {
 
-                UserRepository userRepository = new UserRepository(_chainSQL);
+
                 // de no modificarse el campo nombre_user retornara 0, caso correcto retornara 1
-                rowsAffected = await userRepository.DataUpdateUserById(updateUserRequestDTO);
-                if(rowsAffected == 0) return rowsAffected;
-         
+                rowsAffected = await _userRepository.DataUpdateUserById(updateUserRequestDTO);
+                if (rowsAffected == 0) return rowsAffected;
+
                 return rowsAffected;
 
             }
@@ -97,16 +100,29 @@ namespace Services.UserService
             var rowsAffected = 0;
             try
             {
-                UserRepository userRepository = new UserRepository(_chainSQL);
-                rowsAffected= await userRepository.DataDeleteUserById(id);
+
+                rowsAffected = await _userRepository.DataDeleteUserById(id);
                 return rowsAffected;
-               
+
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Server Error {ex.Message}");
                 return rowsAffected;
+            }
+        }
+        //--------------------------auxiliary functions-------------------------------------
+        public bool IsValidEmail(string mail)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(mail);
+                return addr.Address == mail;
+            }
+            catch
+            {
+                return false;
             }
         }
 

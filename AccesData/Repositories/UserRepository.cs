@@ -1,33 +1,37 @@
 ﻿using AccesData.DTOs;
+using AccesData.Interfaces;
 using AccesData.Models;
 using Dapper;
+using System;
 using System.Data.SqlClient;
 
 namespace AccesData.Repositories
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
-        private string _chainSQL { get; set; }
+        private IConfigSqlConnect _dbConnection;
 
         private string _sqlInsertUser = "INSERT INTO [user] (name_user, mail_user, password_user ) VALUES (@Name, @Mail, @Password)";
 
         public string _sqlSelectUserID = "SELECT id_user from [user] where mail_user =@Mail and password_user =@Password";
-        
+
         public string _sqlSelectUser = "SELECT id_user, name_user, mail_user, password_user FROM [user] WHERE id_user = @Id";
-       
+
         public string _sqlEditUserName = "UPDATE [user] SET name_user = @Name WHERE id_user = @Id";
 
         public string _sqlDeleteUser = "delete from [user] WHERE id_user = @Id";
 
+        public string _sqlSelectAllUsersMail = "SELECT mail_user FROM [user] where mail_user = @Mail";
 
-        public UserRepository(string chainSQL)
+
+        public UserRepository(IConfigSqlConnect dbConnection)
         {
-            _chainSQL = chainSQL;
+            _dbConnection = dbConnection;
 
         }
-        public async Task<User> DataCreateUser(CreateUserDTO newUser)
+        public async Task<User> DataCreateUser(CreateUserRequestDTO newUser)
         {
-            using (var connection = new SqlConnection(_chainSQL))
+            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
             {
                 var parameters = new { Name = newUser.name_user, Mail = newUser.mail_user, Password = newUser.password_user };
                 var queryInsert = await connection.ExecuteAsync(_sqlInsertUser, parameters);
@@ -40,12 +44,32 @@ namespace AccesData.Repositories
 
         public async Task<User> DataGetUserByID(int id_user)
         {
-            using (var connection = new SqlConnection(_chainSQL))
+            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
             {
                 var parameters = new { Id = id_user };
-                var user = await connection.QueryFirstOrDefaultAsync<User>(_sqlSelectUser, parameters); 
-                if(user == null) return null;
-                return new User { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, password_user = user.password_user};
+                var user = await connection.QueryFirstOrDefaultAsync<User>(_sqlSelectUser, parameters);
+                if (user == null) return null;
+                return new User { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, password_user = user.password_user };
+            }
+
+
+        } 
+        public async Task<User> DataCompareEmailUserByMail( string mail_user)
+        {
+            try
+            {
+
+            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
+            {
+                var parameters = new { Mail = mail_user };
+                var mailFound = await connection.QueryFirstOrDefaultAsync<User>(_sqlSelectAllUsersMail, parameters);
+                    return mailFound;
+            }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw new Exception("error getting user mail");
             }
 
 
@@ -55,7 +79,7 @@ namespace AccesData.Repositories
         {
             var rowsAffected = 0;
 
-            using (var connection = new SqlConnection(_chainSQL))
+            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
             {
                 var parameters = new { Name = updateUserRequestDTO.name_user, Id = updateUserRequestDTO.id_user };
 
@@ -72,7 +96,7 @@ namespace AccesData.Repositories
         public async Task<int> DataDeleteUserById(int id)
         {
             var rowsAffected = 0;
-            using (var connection = new SqlConnection(_chainSQL))
+            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
             {
                 rowsAffected = await connection.ExecuteAsync(_sqlDeleteUser, new { Id = id });
 
