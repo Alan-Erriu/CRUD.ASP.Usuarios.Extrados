@@ -15,7 +15,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
 
         private IAuthenticationService _authorizationService;
 
-        public AuthController(IConfigSqlConnect dbConnection, IHashService hashService, IAuthenticationService authorizationService)
+        public AuthController( IHashService hashService, IAuthenticationService authorizationService)
         {
            
             _hashService = hashService;

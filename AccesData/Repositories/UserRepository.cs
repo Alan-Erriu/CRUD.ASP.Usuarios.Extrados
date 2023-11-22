@@ -1,7 +1,10 @@
 ﻿using AccesData.DTOs;
 using AccesData.Interfaces;
 using AccesData.Models;
+using Configuration.BDConfiguration;
+
 using Dapper;
+using Microsoft.Extensions.Options;
 using System;
 using System.Data.SqlClient;
 
@@ -9,7 +12,9 @@ namespace AccesData.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private IConfigSqlConnect _dbConnection;
+
+
+        private BDConfig _bdConfig;
 
         private string _sqlInsertUser = "INSERT INTO [user] (name_user, mail_user, password_user ) VALUES (@Name, @Mail, @Password)";
 
@@ -24,14 +29,14 @@ namespace AccesData.Repositories
         public string _sqlSelectAllUsersMail = "SELECT mail_user FROM [user] where mail_user = @Mail";
 
 
-        public UserRepository(IConfigSqlConnect dbConnection)
+        public UserRepository(IOptions<BDConfig> bdConfig)
         {
-            _dbConnection = dbConnection;
+            _bdConfig = bdConfig.Value;
 
         }
         public async Task<User> DataCreateUser(CreateUserRequestDTO newUser)
         {
-            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
+            using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
             {
                 var parameters = new { Name = newUser.name_user, Mail = newUser.mail_user, Password = newUser.password_user };
                 var queryInsert = await connection.ExecuteAsync(_sqlInsertUser, parameters);
@@ -44,7 +49,7 @@ namespace AccesData.Repositories
 
         public async Task<User> DataGetUserByID(int id_user)
         {
-            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
+            using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
             {
                 var parameters = new { Id = id_user };
                 var user = await connection.QueryFirstOrDefaultAsync<User>(_sqlSelectUser, parameters);
@@ -59,7 +64,7 @@ namespace AccesData.Repositories
             try
             {
 
-            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
+            using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
             {
                 var parameters = new { Mail = mail_user };
                 var mailFound = await connection.QueryFirstOrDefaultAsync<User>(_sqlSelectAllUsersMail, parameters);
@@ -79,7 +84,7 @@ namespace AccesData.Repositories
         {
             var rowsAffected = 0;
 
-            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
+            using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
             {
                 var parameters = new { Name = updateUserRequestDTO.name_user, Id = updateUserRequestDTO.id_user };
 
@@ -96,7 +101,7 @@ namespace AccesData.Repositories
         public async Task<int> DataDeleteUserById(int id)
         {
             var rowsAffected = 0;
-            using (var connection = new SqlConnection(_dbConnection.chainSQL()))
+            using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
             {
                 rowsAffected = await connection.ExecuteAsync(_sqlDeleteUser, new { Id = id });
 

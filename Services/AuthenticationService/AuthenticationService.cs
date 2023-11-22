@@ -10,7 +10,10 @@ using AccesData.DTOs;
 using AccesData.Interfaces;
 using AccesData.Models;
 using AccesData.Repositories;
+using Configuration.BDConfiguration;
+using Configuration.JWTConfiguration;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Services.Interfaces;
 using Services.Security;
@@ -21,19 +24,20 @@ namespace Services.AuthenticationService
     {
         private IHashService _hashService;
         private readonly IAuthRepository _authRepository;
-        private readonly IConfiguration _configuration;
-        public AuthenticationService( IConfiguration configuration, IAuthRepository authRepository, IHashService hashService)
+        private  JWTConfig _jwtConfig;
+        public AuthenticationService(IOptions<JWTConfig> jwtConfi, IAuthRepository authRepository, IHashService hashService)
         {
              _hashService = hashService;
              _authRepository = authRepository;
-             _configuration = configuration;
+            _jwtConfig = jwtConfi.Value;
         }
 
         public string CreateToken(string id_user, string name_user, string mail_user)
         {
 
-            var key = _configuration.GetValue<string>("JwtSettings:key");
+            var key = _jwtConfig.Secret;
             var keyBytes = Encoding.ASCII.GetBytes(key);
+            
             var claims = new ClaimsIdentity();
             claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, id_user));
             claims.AddClaim(new Claim(ClaimTypes.Name, name_user)); 
@@ -47,7 +51,9 @@ namespace Services.AuthenticationService
             {
                 Subject = claims,
                 Expires = DateTime.UtcNow.AddMinutes(2),
-                SigningCredentials = credentialsToken
+                SigningCredentials = credentialsToken,
+                Audience = _jwtConfig.Audience,
+                Issuer = _jwtConfig.Issuer
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -65,9 +71,9 @@ namespace Services.AuthenticationService
 
                 User user = await _authRepository.DataLogin(loginRequestDTO);
 
+                if (user == null) return new LoginDTO { msg = "User Not Found", result = false, };
                 if (!_hashService.VerifyPassword(loginRequestDTO.password_user, user.password_user)) return new LoginDTO { msg = "Incorrect password", result = false };
 
-                if (user == null) return new LoginDTO { msg = "User Not Found", result = false, };
 
                 
 
