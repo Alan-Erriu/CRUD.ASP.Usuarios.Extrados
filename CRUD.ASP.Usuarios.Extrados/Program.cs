@@ -17,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container(dependencies)
 
 builder.Services.AddScoped<IConfigSqlConnect, ConfigSqlConnect>();
-builder.Services.AddScoped<IHashService, HashService>();
+builder.Services.AddScoped<IHashService, BcryptHasher>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

@@ -2,7 +2,7 @@
 
 namespace Services.Security
 {
-    public class HashService : IHashService
+    public class BcryptHasher : IHashService
     {
 
         public string HashPasswordUser(string password)

@@ -29,13 +29,13 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         public async Task<IActionResult> CreateUser(CreateUserRequestDTO createUserRequest)
         {
             if (string.IsNullOrEmpty(createUserRequest.name_user) || string.IsNullOrEmpty(createUserRequest.mail_user) || string.IsNullOrEmpty(createUserRequest.password_user))
-                return BadRequest(new CreateUserDTO { msg = "Name, mail, and password are required", result = false });
-            if (!_userService.IsValidEmail(createUserRequest.mail_user)) return BadRequest(new CreateUserDTO { msg = "Invalid email format", result = false });
+                return BadRequest("Name, mail, and password are required");
+            if (!_userService.IsValidEmail(createUserRequest.mail_user)) return BadRequest("Invalid email format");
             try
             {
                 
                 CreateUserDTO user = await _userService.CreateUserService(createUserRequest);
-                if (user.msg == "The email is already in use") return Conflict(user);
+                if (user.msg == "The email is already in use") return Conflict("The email is already in use");
                 return Ok(user);
             }
             catch (Exception Ex)
@@ -53,13 +53,13 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         public async Task<IActionResult> GetUserById([FromBody] GetUserByIdRequestDTO getUserByIdRequestDTO)
         {
             if (getUserByIdRequestDTO.id_user == 0 || string.IsNullOrEmpty(getUserByIdRequestDTO.password_user))
-                return BadRequest(new GetUserByIdDTO { msg = "id and password are required", result = false });
+                return BadRequest("id and password are required");
 
             try
             {             
                 GetUserByIdDTO user = await _userService.GetUserByIdProtectedService(getUserByIdRequestDTO);
-                if (user.msg == "User not found") return NotFound(user);
-                if (user.msg == "Incorrect password") return BadRequest(user);
+                if (user.msg == "User not found") return NotFound("User not found");
+                if (user.msg == "Incorrect password") return BadRequest("Incorrect password");
                 return Ok(user);
             }
             catch (Exception Ex)
@@ -75,12 +75,12 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         public async Task<IActionResult> UpdateUserById([FromBody] UpdateUserRequestDTO updateUserRequestDTO)
         {
             if (updateUserRequestDTO.id_user == 0 || string.IsNullOrEmpty(updateUserRequestDTO.name_user))
-                return StatusCode(400, new GetUserByIdDTO { msg = "Name and id are required", result = false });
+                return BadRequest("Name and id are required");
             try
             {
              
                 var userModifycated = await _userService.UpdateUserByIdService(updateUserRequestDTO);
-                if (userModifycated == 0) { return StatusCode(404, $"User not found id: {updateUserRequestDTO.id_user}"); }
+                if (userModifycated == 0) { return NotFound($"User not found id: {updateUserRequestDTO.id_user}"); }
                 GetUserByIdDTO user = await _userService.GetUserByIdService(updateUserRequestDTO.id_user);
                 
                 return Ok(user);
@@ -103,7 +103,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
                 
                 var user = await _userService.DeleteUserByIdService(id_user);
 
-                if (user == 0) { return StatusCode(404, $"User not found id: {id_user}"); }
+                if (user == 0) { return NotFound($"User not found id: {id_user}"); }
 
                 return Ok("user deleted");
             }

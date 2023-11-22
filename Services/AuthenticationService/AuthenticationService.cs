@@ -57,17 +57,19 @@ namespace Services.AuthenticationService
 
             return createdToken;
         }
-        public async Task<LoginDTO> ReturnToken(LoginRequestDTO LoginRequestDTO)
+        public async Task<LoginDTO> ReturnToken(LoginRequestDTO loginRequestDTO)
         {
             try
             {
-              
+                
 
-                User user = await _authRepository.DataLogin(LoginRequestDTO);
-              
+                User user = await _authRepository.DataLogin(loginRequestDTO);
+
+                if (!_hashService.VerifyPassword(loginRequestDTO.password_user, user.password_user)) return new LoginDTO { msg = "Incorrect password", result = false };
+
                 if (user == null) return new LoginDTO { msg = "User Not Found", result = false, };
 
-                if (!_hashService.VerifyPassword(LoginRequestDTO.password_user, user.password_user)) return new LoginDTO { msg = "Incorrect password", result = false };
+                
 
                 var tokenCreated = CreateToken(user.id_user.ToString(), user.name_user, user.mail_user);
                

@@ -28,7 +28,7 @@ namespace AccesData.Repositories
 
             using (var connection = new SqlConnection(_dbConnection.chainSQL()))
             {
-                var parameters = new { Mail = loginRequestDTO.mail_user };
+                var parameters = new { Mail = loginRequestDTO.mail_user};
                 var user = await connection.QueryFirstOrDefaultAsync<User>(_sqlSelectAuthUser, parameters);
                     if (user == null) return null;
                     return new User { id_user = user.id_user, name_user = user.name_user, mail_user = user.mail_user, password_user = user.password_user };
