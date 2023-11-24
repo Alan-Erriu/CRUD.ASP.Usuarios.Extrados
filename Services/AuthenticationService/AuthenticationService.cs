@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using AccesData.DTOs;
+﻿using AccesData.DTOs;
+using AccesData.InputsRequest;
 using AccesData.Interfaces;
 using AccesData.Models;
 using AccesData.Repositories;
-using Configuration.BDConfiguration;
 using Configuration.JWTConfiguration;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Services.Interfaces;
-using Services.Security;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Services.AuthenticationService
 {
@@ -24,24 +17,27 @@ namespace Services.AuthenticationService
     {
         private IHashService _hashService;
         private readonly IAuthRepository _authRepository;
-        private  JWTConfig _jwtConfig;
+   
+        private JWTConfig _jwtConfig;
         public AuthenticationService(IOptions<JWTConfig> jwtConfi, IAuthRepository authRepository, IHashService hashService)
         {
-             _hashService = hashService;
-             _authRepository = authRepository;
+            _hashService = hashService;
+            _authRepository = authRepository;
             _jwtConfig = jwtConfi.Value;
+            
         }
 
-        public string CreateToken(string id_user, string name_user, string mail_user)
+        public string CreateToken(string id_user, string name_user, string mail_user, string role_user)
         {
 
             var key = _jwtConfig.Secret;
             var keyBytes = Encoding.ASCII.GetBytes(key);
-            
+
             var claims = new ClaimsIdentity();
             claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, id_user));
-            claims.AddClaim(new Claim(ClaimTypes.Name, name_user)); 
+            claims.AddClaim(new Claim(ClaimTypes.Name, name_user));
             claims.AddClaim(new Claim(ClaimTypes.Email, mail_user));
+            claims.AddClaim(new Claim(ClaimTypes.Role, role_user));
 
             var credentialsToken = new SigningCredentials(
                new SymmetricSecurityKey(keyBytes),
@@ -63,28 +59,22 @@ namespace Services.AuthenticationService
 
             return createdToken;
         }
-        public async Task<LoginDTO> ReturnToken(LoginRequestDTO loginRequestDTO)
+        public async Task<LoginDTO> SignInService(LoginRequest loginRequestDTO)
         {
             try
             {
-                
+                User user = await _authRepository.DataSignIn(loginRequestDTO);
 
-                User user = await _authRepository.DataLogin(loginRequestDTO);
+                if (user == null) return new LoginDTO { msg = "User Not Found" };
+                if (!_hashService.VerifyPassword(loginRequestDTO.password_user, user.password_user)) return new LoginDTO { msg = "Incorrect password" };
 
-                if (user == null) return new LoginDTO { msg = "User Not Found", result = false, };
-                if (!_hashService.VerifyPassword(loginRequestDTO.password_user, user.password_user)) return new LoginDTO { msg = "Incorrect password", result = false };
-
-
-                
-
-                var tokenCreated = CreateToken(user.id_user.ToString(), user.name_user, user.mail_user);
-               
-                return new LoginDTO { token = tokenCreated, result = true, msg = "Ok" };
+                var tokenCreated = CreateToken(user.id_user.ToString(), user.name_user, user.mail_user, user.role_user);
+                return new LoginDTO { token = tokenCreated, msg = "Ok" };
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return new LoginDTO { msg = "Error during authentication", result = false, token = null };
+                return new LoginDTO { msg = "Error during authentication", token = null };
             }
 
         }

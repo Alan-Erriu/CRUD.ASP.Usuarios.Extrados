@@ -1,6 +1,6 @@
-﻿namespace AccesData.DTOs
+﻿namespace AccesData.InputsRequest
 {
-    public class GetUserByIdRequestDTO
+    public class GetUserByIdRequest
     {
         public int id_user { get; set; }
         public string password_user { get; set; }

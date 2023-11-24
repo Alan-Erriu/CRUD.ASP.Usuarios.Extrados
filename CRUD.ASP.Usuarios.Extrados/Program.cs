@@ -5,7 +5,10 @@ using Configuration.JWTConfiguration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Services.AuthenticationService;
+using Services.BookService;
 using Services.Interfaces;
+using Services.RentBookService;
+using Services.RoleService;
 using Services.Security;
 using Services.UserService;
 using System.Text;
@@ -23,6 +26,12 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IRentBookRepository, RentBookRepository>();
+builder.Services.AddScoped<IRentBookService, RentBookService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.Configure<BDConfig>(builder.Configuration.GetSection("connectionDb"));
 builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JwtSettings"));
 
@@ -33,7 +42,7 @@ builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JwtSetti
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
- 
+    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(config =>
 {
     config.RequireHttpsMetadata = false;
@@ -44,7 +53,7 @@ builder.Services.AddAuthentication(config =>
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
-        ValidAudience= builder.Configuration["JwtSettings:Audience"],
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]))
     };
@@ -70,6 +79,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
 }
 
 

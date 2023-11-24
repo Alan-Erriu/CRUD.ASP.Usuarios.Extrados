@@ -1,10 +1,9 @@
 ﻿using Konscious.Security.Cryptography;
 using Services.Interfaces;
-using System;
 using System.Security.Cryptography;
 using System.Text;
 
-public class Argon2Hasher: IHashService
+public class Argon2Hasher : IHashService
 {
     public string HashPasswordUser(string password)
     {
@@ -37,7 +36,7 @@ public class Argon2Hasher: IHashService
         return salt;
     }
 
-    public  bool VerifyPassword(string hashedPassword, string inputPassword)
+    public bool VerifyPassword(string hashedPassword, string inputPassword)
     {
         // Convierte la cadena hexadecimal del hash almacenado a un arreglo de bytes
         byte[] storedHash = Enumerable.Range(0, hashedPassword.Length)
@@ -61,5 +60,5 @@ public class Argon2Hasher: IHashService
         return storedHash.Skip(16).SequenceEqual(hashBytes);
     }
 
-   
+
 }
