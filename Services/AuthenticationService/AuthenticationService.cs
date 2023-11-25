@@ -2,7 +2,6 @@
 using AccesData.InputsRequest;
 using AccesData.Interfaces;
 using AccesData.Models;
-using AccesData.Repositories;
 using Configuration.JWTConfiguration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -17,14 +16,17 @@ namespace Services.AuthenticationService
     {
         private IHashService _hashService;
         private readonly IAuthRepository _authRepository;
-   
+        private IUserRepository _userRepository;
+
         private JWTConfig _jwtConfig;
-        public AuthenticationService(IOptions<JWTConfig> jwtConfi, IAuthRepository authRepository, IHashService hashService)
+        public AuthenticationService(IOptions<JWTConfig> jwtConfi, IAuthRepository authRepository, IHashService hashService, IUserRepository userRepository)
         {
             _hashService = hashService;
             _authRepository = authRepository;
             _jwtConfig = jwtConfi.Value;
-            
+            _userRepository = userRepository;
+
+
         }
 
         public string CreateToken(string id_user, string name_user, string mail_user, string role_user)
@@ -78,6 +80,24 @@ namespace Services.AuthenticationService
             }
 
         }
+        //registrarse, el rol por defecto en la BD es "Usuario"
+        public async Task<CreateUserDTO> SignUpService(CreateUserRequest createUserRequest)
+        {
+            try
+            {
+                var emailAlreadyExists = await _userRepository.DataCompareEmailUserByMail(createUserRequest.mail_user);
 
+                if (emailAlreadyExists != null) return new CreateUserDTO { msg = "The email is already in use" };
+                createUserRequest.password_user = _hashService.HashPasswordUser(createUserRequest.password_user);
+                CreateUserDTO newUser = await _authRepository.DataSignUp(createUserRequest);
+                if (newUser.msg == "error database") return new CreateUserDTO { msg = "server error" };
+                return new CreateUserDTO { id_user = newUser.id_user, name_user = newUser.name_user, mail_user = newUser.mail_user, msg = "Ok" };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Server error {ex.Message}");
+                return new CreateUserDTO { msg = "server error" };
+            }
+        }
     }
 }

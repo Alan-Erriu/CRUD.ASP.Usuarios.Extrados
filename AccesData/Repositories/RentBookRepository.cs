@@ -13,8 +13,8 @@ namespace AccesData.Repositories
         private BDConfig _bdConfig;
 
         private string _sqlInsertRentBook = "INSERT INTO [rent_book] (id_book,id_user,rent_date_epoch,expiration_date_epoch) VALUES (@IDBOOK,@IDUSER,@RENTDATE,@EXPIRATIONDATE)";
-        
-      
+
+
         public RentBookRepository(IOptions<BDConfig> bdConfig)
         {
             _bdConfig = bdConfig.Value;
@@ -30,7 +30,7 @@ namespace AccesData.Repositories
                 {
                     var parameters = new { IDBOOK = rentBookRequest.id_book, IDUSER = rentBookRequest.id_user, RENTDATE = rentBookRequest.rent_date_epoch, EXPIRATIONDATE = rentBookRequest.expiration_date_epoch };
                     var queryInsert = await connection.ExecuteAsync(_sqlInsertRentBook, parameters);
-              
+
 
                     return new CreateRentBookDTO
                     {

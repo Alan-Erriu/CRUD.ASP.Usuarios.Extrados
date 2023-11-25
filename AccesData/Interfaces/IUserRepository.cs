@@ -6,7 +6,7 @@ namespace AccesData.Interfaces
 {
     public interface IUserRepository
     {
-        Task<CreateUserDTO>DataCreateUser(CreateUserRequest newUser);
+
         Task<int> DataDeleteUserById(int id);
         Task<User> DataGetUserByID(int id_user);
         Task<int> DataUpdateUserById(UpdateUserRequest updateUserRequestDTO);

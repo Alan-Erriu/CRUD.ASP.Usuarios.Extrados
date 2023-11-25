@@ -1,5 +1,4 @@
-﻿using AccesData.DTOs.RentBookDTOs;
-using AccesData.DTOs.RoleDTOs;
+﻿using AccesData.DTOs.RoleDTOs;
 using AccesData.InputsRequest;
 using AccesData.Interfaces;
 using Configuration.BDConfiguration;
@@ -17,7 +16,7 @@ namespace AccesData.Repositories
 
         private string _sqlSelectAllNameRole = "SELECT name_role FROM [role] where name_role = @Name";
 
-    
+
         public RoleRepository(IOptions<BDConfig> bdConfig)
         {
             _bdConfig = bdConfig.Value;
@@ -61,7 +60,7 @@ namespace AccesData.Repositories
                     var parameters = new { Name = nameRole };
                     var nameRoleFound = await connection.QueryFirstOrDefaultAsync<string>(_sqlSelectAllNameRole, parameters);
                     return nameRoleFound;
-                   
+
                 }
             }
             catch (Exception ex)

@@ -6,7 +6,6 @@ using Configuration.BDConfiguration;
 
 using Dapper;
 using Microsoft.Extensions.Options;
-using System.Data;
 using System.Data.SqlClient;
 
 namespace AccesData.Repositories
@@ -18,7 +17,7 @@ namespace AccesData.Repositories
         private BDConfig _bdConfig;
 
         private string _sqlInsertUser = "INSERT INTO [user] (name_user, mail_user, password_user ) VALUES (@Name, @Mail, @Password)";
-       
+
         private string _sqlInsertUserWithRole = "INSERT INTO [user] (name_user, mail_user, password_user,role_user ) VALUES (@Name, @Mail, @Password,@Role)";
 
         private string _sqlSelectUserID = "SELECT id_user from [user] where mail_user =@Mail and password_user =@Password";
@@ -37,30 +36,10 @@ namespace AccesData.Repositories
             _bdConfig = bdConfig.Value;
 
         }
-        //registrarse, el rol por defecto en la BD es "Usuario"
-        public async Task<CreateUserDTO> DataCreateUser(CreateUserRequest newUser)
-        {
-            try
-            {
-
-                using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
-                {
-                   
-                    var parameters = new { Name = newUser.name_user, Mail = newUser.mail_user, Password = newUser.password_user };
-                    var queryInsert = await connection.ExecuteAsync(_sqlInsertUser, parameters);
-                    var querySelect = await connection.QueryFirstOrDefaultAsync<int>(_sqlSelectUserID, new { Mail = newUser.mail_user, Password = newUser.password_user });
-                    return new CreateUserDTO { id_user = querySelect, name_user = newUser.name_user, mail_user = newUser.mail_user, msg = "ok" };
-                }
-            }
-            catch (Exception ex)
-            {
-
-                Console.WriteLine($"error database: {ex.Message}");
-                return new CreateUserDTO { msg = "error database" };
-            }
 
 
-        }
+
+
         //crear un nuevo usuario con roles, los roles solo pueden coincidir con los registrados en la tabla "role"
         //Solo el usuario "Admin" va a tener acceso a este metodo
         public async Task<CreateUserWithRoleDTO> DataCreateUserWithRole(CreateUserWithRoleRequest newUser)
@@ -71,10 +50,10 @@ namespace AccesData.Repositories
                 using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
                 {
 
-                    var parameters = new { Name = newUser.name_user, Mail = newUser.mail_user, Password = newUser.password_user, @Role= newUser.role_user };
+                    var parameters = new { Name = newUser.name_user, Mail = newUser.mail_user, Password = newUser.password_user, @Role = newUser.role_user };
                     var queryInsert = await connection.ExecuteAsync(_sqlInsertUserWithRole, parameters);
                     var querySelect = await connection.QueryFirstOrDefaultAsync<int>(_sqlSelectUserID, new { Mail = newUser.mail_user, Password = newUser.password_user });
-                    return new CreateUserWithRoleDTO { id_user = querySelect, name_user = newUser.name_user, mail_user = newUser.mail_user,role_user=newUser.role_user, msg = "ok" };
+                    return new CreateUserWithRoleDTO { id_user = querySelect, name_user = newUser.name_user, mail_user = newUser.mail_user, role_user = newUser.role_user, msg = "ok" };
                 }
             }
             catch (Exception ex)

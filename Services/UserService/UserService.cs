@@ -19,25 +19,7 @@ namespace Services.UserService
             _hashService = hashService;
             _roleRepository = roleRepository;
         }
-        //registrarse, el rol por defecto en la BD es "Usuario"
-        public async Task<CreateUserDTO> CreateUserService(CreateUserRequest createUserRequest)
-        {
-            try
-            {
-                var emailAlreadyExists = await _userRepository.DataCompareEmailUserByMail(createUserRequest.mail_user);
 
-                if (emailAlreadyExists != null) return new CreateUserDTO { msg = "The email is already in use" };
-                createUserRequest.password_user = _hashService.HashPasswordUser(createUserRequest.password_user);
-                CreateUserDTO newUser = await _userRepository.DataCreateUser(createUserRequest);
-                if (newUser.msg == "error database") return new CreateUserDTO { msg = "server error" };
-                return new CreateUserDTO { id_user = newUser.id_user, name_user = newUser.name_user, mail_user = newUser.mail_user, msg = "Ok" };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Server error {ex.Message}");
-                return new CreateUserDTO { msg = "server error" };
-            }
-        }
 
         //crear un nuevo usuario con roles, los roles solo pueden coincidir con los registrados en la tabla "role"
         //Solo el usuario "Admin" va a tener acceso a este metodo
@@ -51,12 +33,12 @@ namespace Services.UserService
                 if (roleAlreadyExists == null) return new CreateUserWithRoleDTO { msg = "The role does not exist" };
 
                 if (emailAlreadyExists != null) return new CreateUserWithRoleDTO { msg = "The email is already in use" };
-                
+
                 createUserRequest.password_user = _hashService.HashPasswordUser(createUserRequest.password_user);
                 CreateUserWithRoleDTO newUser = await _userRepository.DataCreateUserWithRole(createUserRequest);
-                
+
                 if (newUser.msg == "error database") return new CreateUserWithRoleDTO { msg = "server error" };
-                return new CreateUserWithRoleDTO { id_user = newUser.id_user, name_user = newUser.name_user, mail_user = newUser.mail_user,role_user= roleAlreadyExists, msg = "Ok" };
+                return new CreateUserWithRoleDTO { id_user = newUser.id_user, name_user = newUser.name_user, mail_user = newUser.mail_user, role_user = roleAlreadyExists, msg = "Ok" };
             }
             catch (Exception ex)
             {
@@ -154,6 +136,6 @@ namespace Services.UserService
             }
         }
 
-     
+
     }
 }

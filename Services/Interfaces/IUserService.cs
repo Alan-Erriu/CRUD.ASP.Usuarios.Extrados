@@ -5,7 +5,7 @@ namespace Services.Interfaces
 {
     public interface IUserService
     {
-        Task<CreateUserDTO> CreateUserService(CreateUserRequest createUserRequest);
+
         Task<CreateUserWithRoleDTO> CreateUserWithRoleService(CreateUserWithRoleRequest createUserRequest);
         Task<int> DeleteUserByIdService(int id);
         Task<GetUserByIdDTO> GetUserByIdProtectedService(GetUserByIdRequest request);

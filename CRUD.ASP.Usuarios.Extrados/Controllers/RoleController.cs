@@ -1,10 +1,7 @@
-﻿using AccesData.DTOs.BookDTOs;
-using AccesData.DTOs.RoleDTOs;
+﻿using AccesData.DTOs.RoleDTOs;
 using AccesData.InputsRequest;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Services.BookService;
 using Services.Interfaces;
 
 namespace CRUD.ASP.Usuarios.Extrados.Controllers
@@ -22,7 +19,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
 
 
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("create")]
 
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest roleRequest)
@@ -32,7 +29,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
 
             try
             {
-                
+
 
                 CreateRoleDTO roleCreated = await _roleService.CreateRoleService(roleRequest);
                 if (roleCreated.msg == "The role is already in use") return Conflict("The role is already in use");

@@ -8,6 +8,8 @@ namespace AccesData.Interfaces
     {
         Task<User> DataSignIn(LoginRequest loginRequestDTO);
 
+        Task<CreateUserDTO> DataSignUp(CreateUserRequest LoginRequestDTO);
+
 
     }
 }

@@ -11,7 +11,7 @@
 
         public string password_user { get; set; }
 
-        public string role_user { get; set;}
+        public string role_user { get; set; }
 
 
     }
