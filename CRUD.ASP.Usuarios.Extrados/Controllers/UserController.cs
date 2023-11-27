@@ -3,6 +3,7 @@ using AccesData.InputsRequest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using System.Security.Claims;
 
 namespace CRUD.ASP.Usuarios.Extrados.Controllers
 {
@@ -22,8 +23,6 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
             _hashService = hashService;
             _userService = userService;
         }
-        // registrarse como usuario
-
 
 
         [Authorize(Roles = "Admin")]
@@ -105,6 +104,9 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         [HttpDelete("delete/{id_user}")]
         public async Task<IActionResult> DeleteUserById(int id_user)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int userIdInt = int.Parse(userId);
+            if (userIdInt != id_user) return Unauthorized("Invalid user ID");
             if (id_user == 0) return BadRequest("id is required");
             try
             {

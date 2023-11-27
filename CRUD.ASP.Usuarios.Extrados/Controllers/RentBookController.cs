@@ -29,6 +29,9 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         {
             try
             {
+                // la fecha no debe ser anterior a la actual(en utc)
+                DateTime utcNow = DateTime.UtcNow;
+                if (RentBookRequest.rentDate < utcNow) return BadRequest("Date is in the past");
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int userIdInt = int.Parse(userId);
                 if (userIdInt != RentBookRequest.id_user) return Unauthorized("Invalid user ID");

@@ -20,7 +20,9 @@ namespace Services.RentBookService
         public async Task<CreateRentBookDTO> CreateRentBookService(CreatRentBookControlleRequest rentBookRequest)
         {
             try
-            {  // se crea la fecha de vencimiento del alquiler, 5 dias despues de la fecha de entrega
+            {
+
+                // se crea la fecha de vencimiento del alquiler, 5 dias despues de la fecha de entrega
                 DateTime rentExpirationDate = rentBookRequest.rentDate.AddDays(5);
                 long rentExpirationDateEpoch = new DateTimeOffset(rentExpirationDate).ToUnixTimeMilliseconds();
                 //la fecha de entrega del libro se pasa a milisegundos(epoch)
