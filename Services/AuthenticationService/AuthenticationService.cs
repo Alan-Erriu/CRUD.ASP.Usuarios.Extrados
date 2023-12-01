@@ -137,7 +137,7 @@ namespace Services.AuthenticationService
                 iduser_tokenhistory = id_user,
                 token_tokenhistory = token,
                 refreshToken_tokenhistory = refreshToken,
-                expiration_date_tokenhistory = DateTimeOffset.UtcNow.AddMinutes(1).ToUnixTimeMilliseconds()
+                expiration_date_tokenhistory = DateTimeOffset.UtcNow.AddDays(2).ToUnixTimeMilliseconds()
             };
             LoginDTO tokenSaved = await _authRepository.DataInsertRefreshToken(tokenHistory);
             return tokenSaved;

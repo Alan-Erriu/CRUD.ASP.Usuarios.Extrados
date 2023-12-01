@@ -170,7 +170,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
             catch (Exception ex)
             {
 
-                //CompareRefreshTokens() lanza este error cuando el token, no es un token no tiene un formato jwt valido 
+                //CompareRefreshTokens() lanza este error cuando el token, no es un token o no tiene un formato jwt valido 
                 if (ex.Message.Contains("IDX12741"))
                 {
                     Console.WriteLine(ex.Message);
