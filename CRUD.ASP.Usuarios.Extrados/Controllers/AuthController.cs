@@ -2,7 +2,6 @@
 using AccesData.InputsRequest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using Services.Interfaces;
 using System.Security.Claims;
 
@@ -13,16 +12,16 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
     public class AuthController : Controller
     {
 
-        private IHashService _hashService;
+
 
         private IAuthenticationService _authorizationService;
 
         private IUserService _userService;
 
-        public AuthController(IHashService hashService, IAuthenticationService authorizationService, IUserService userService, CokiesConfig cokiesConfig)
+        public AuthController(IAuthenticationService authorizationService, IUserService userService)
         {
 
-            _hashService = hashService;
+
             _authorizationService = authorizationService;
             _userService = userService;
 
@@ -120,10 +119,12 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         {
             try
             {
-                //obtener refreshToken de la cokie y agregarlos a la request
+                //obtener refreshToken de la cokie 
                 var Refreshtoken = Request.Cookies["refreshToken"];
+
                 // extraer claims del token vencido
                 var user = _authorizationService.GetUserFromExpiredToken(token.expiredToken);
+                if (user == null) return BadRequest("invalid expired token");
 
                 // validaciones, por si los campos estan vacios, los campos vienen del access token expirado
                 if (user.id_user == 0) BadRequest("invalid access token ");
@@ -159,13 +160,23 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
                 if (tokens.msg == "ok") return Ok(tokens);
                 return StatusCode(500, "Internal Server Error");
 
-
-
-
-
             }
+            catch (ArgumentNullException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return NotFound("refresh token not foudn");
+            }
+
             catch (Exception ex)
             {
+
+                //CompareRefreshTokens() lanza este error cuando el token, no es un token no tiene un formato jwt valido 
+                if (ex.Message.Contains("IDX12741"))
+                {
+                    Console.WriteLine(ex.Message);
+                    return BadRequest("Invalid access token format");
+                }
+
                 Console.WriteLine($"Error: {ex.Message}");
                 return StatusCode(500, "Internal Server Error");
             }

@@ -162,12 +162,13 @@ namespace Services.AuthenticationService
             }
 
         }
-
+        //buscar un refresh token por id_user y compararlo contra otro refresh token
         public async Task<bool> CompareRefreshTokens(int id_user, string refreshToken)
         {
 
             var refreshTokenBd = await _authRepository.DataSelectRefreshToken(id_user);
-            Console.WriteLine("refresh token bd" + refreshTokenBd.refresh_Token_tokenhistory);
+
+            if (refreshTokenBd.msg == "token not found") throw new ArgumentNullException("token not found in db, refreshTokenBd.refresh_Token_tokenhistory will be null");
             if (refreshTokenBd.refresh_Token_tokenhistory != refreshToken) return false;
             return true;
         }
@@ -184,6 +185,7 @@ namespace Services.AuthenticationService
         {
 
             RefreshTokenDTO refreshTokenBd = await _authRepository.DataSelectRefreshToken(id_user);
+            if (refreshTokenBd.msg == "token not found") throw new ArgumentNullException("token not found in db, refreshTokenBd.expiration_date_tokenhistory will be null");
             long currentEpochTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (refreshTokenBd.expiration_date_tokenhistory < currentEpochTime) return false;
             return true;
