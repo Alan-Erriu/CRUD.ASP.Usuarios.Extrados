@@ -2,9 +2,13 @@
 
 namespace AccesData.InputsRequest
 {
-    public class CreateBookRequest
+    public class RefreshTokenRequest
     {
         [Required]
-        public string name_book { get; set; }
+        public string expiredToken { get; set; }
+
+
+
+
     }
 }

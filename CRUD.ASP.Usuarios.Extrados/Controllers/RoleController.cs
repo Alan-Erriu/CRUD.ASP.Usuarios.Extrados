@@ -24,8 +24,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
 
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest roleRequest)
         {
-            if (string.IsNullOrEmpty(roleRequest.name_role)) return BadRequest("Name is required");
-            if (string.IsNullOrEmpty(roleRequest.description_role)) return BadRequest("Description is required");
+
 
             try
             {

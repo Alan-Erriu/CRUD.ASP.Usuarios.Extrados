@@ -4,13 +4,13 @@ namespace AccesData.InputsRequest
 {
     public class CreatRentBookControlleRequest
     {
-        [Required(ErrorMessage = "User ID is required")]
+        [Required]
         public int id_user { get; set; }
 
-        [Required(ErrorMessage = "Name is required")]
+        [Required]
         public string name_book { get; set; }
 
-        [Required(ErrorMessage = "Rent date is required")]
+        [Required]
 
         [DataType(DataType.DateTime, ErrorMessage = "Invalid date format")]
         public DateTime rentDate { get; set; }

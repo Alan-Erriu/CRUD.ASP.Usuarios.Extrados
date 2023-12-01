@@ -33,7 +33,25 @@ namespace Services.BookService
             }
         }
 
+        public async Task<int> DeleteBookByNameService(string nameBook)
+        {
+            try
+            {
+                //falta codear una tercera respuesta para errores del servidor
+                var bookAlreadyExists = await _bookRepository.DataCompareNameBook(nameBook);
 
+                if (bookAlreadyExists == null) return 0;
+
+                int bookDeleted = await _bookRepository.DataDeleteBookByName(nameBook);
+
+                return bookDeleted;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Server error {ex.Message}");
+                return 0;
+            }
+        }
 
 
 

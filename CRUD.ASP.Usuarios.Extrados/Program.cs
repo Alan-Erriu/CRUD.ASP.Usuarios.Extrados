@@ -36,6 +36,7 @@ builder.Services.Configure<BDConfig>(builder.Configuration.GetSection("connectio
 builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JwtSettings"));
 
 
+
 //------------------------------
 
 

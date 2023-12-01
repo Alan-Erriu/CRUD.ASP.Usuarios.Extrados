@@ -21,13 +21,13 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         }
 
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost("create")]
 
         public async Task<IActionResult> CreateBook([FromBody] CreateBookRequest bookinput)
         {
 
-            if (string.IsNullOrEmpty(bookinput.name_book)) return BadRequest("Name is required");
+
 
             try
             {
@@ -45,7 +45,29 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
 
 
         }
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("delete/{nameBook}")]
 
+        public async Task<IActionResult> DeleteBookByNameBook(string nameBook)
+        {
+
+            if (string.IsNullOrEmpty(nameBook)) return BadRequest("Name Book is required");
+
+            try
+            {
+                //falta codear una tercera respuesta para errores del servidor
+                int bookDeleted = await _bookService.DeleteBookByNameService(nameBook);
+                if (bookDeleted == 0) return BadRequest("Book Not Found");
+                return Ok("Book successfully deleted");
+            }
+            catch (Exception Ex)
+            {
+                Console.WriteLine($"Error deleting book {Ex.Message}");
+                return StatusCode(500, "server error:");
+            }
+
+
+        }
 
     }
 }

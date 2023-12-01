@@ -56,7 +56,7 @@ public class Argon2Hasher : IHashService
         // Realiza la verificación del hash
         byte[] hashBytes = argon2.GetBytes(32);
 
-        // Compara el hash generado con el almacenado
+        // compara el hash generado con el almacenado
         return storedHash.Skip(16).SequenceEqual(hashBytes);
     }
 

@@ -113,16 +113,26 @@ namespace AccesData.Repositories
         {
             var rowsAffected = 0;
 
-            using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
+            try
             {
-                var parameters = new { Name = updateUserRequestDTO.name_user, Id = updateUserRequestDTO.id_user };
+                using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
+                {
+                    var parameters = new { Name = updateUserRequestDTO.name_user, Id = updateUserRequestDTO.id_user };
 
 
-                rowsAffected = await connection.ExecuteAsync(_sqlEditUserName, parameters);
+                    rowsAffected = await connection.ExecuteAsync(_sqlEditUserName, parameters);
 
 
+                }
+                return rowsAffected;
             }
-            return rowsAffected;
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.Message);
+                return rowsAffected;
+            }
+
 
 
         }
@@ -130,14 +140,23 @@ namespace AccesData.Repositories
         public async Task<int> DataDeleteUserById(int id)
         {
             var rowsAffected = 0;
-            using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
+            try
             {
-                rowsAffected = await connection.ExecuteAsync(_sqlDeleteUser, new { Id = id });
+                using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
+                {
+                    rowsAffected = await connection.ExecuteAsync(_sqlDeleteUser, new { Id = id });
 
-                Console.WriteLine($"{rowsAffected} fila afectada");
+                    Console.WriteLine($"{rowsAffected} fila afectada");
 
-                return rowsAffected;
+                    return rowsAffected;
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return 0;
+            }
+
         }
     }
 

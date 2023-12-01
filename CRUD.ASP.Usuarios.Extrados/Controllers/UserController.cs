@@ -30,8 +30,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         //registrar un usuario con roles
         public async Task<IActionResult> CreateUserWithRole(CreateUserWithRoleRequest createUserRequest)
         {
-            if (string.IsNullOrEmpty(createUserRequest.name_user) || string.IsNullOrEmpty(createUserRequest.mail_user) || string.IsNullOrEmpty(createUserRequest.password_user) ||
-               string.IsNullOrEmpty(createUserRequest.role_user)) return BadRequest("Name, mail,role and password are required");
+
 
             if (!_userService.IsValidEmail(createUserRequest.mail_user)) return BadRequest("Invalid email format");
             try
@@ -58,8 +57,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         [HttpPost("getuser")]
         public async Task<IActionResult> GetUserById([FromBody] GetUserByIdRequest getUserByIdRequestDTO)
         {
-            if (getUserByIdRequestDTO.id_user == 0 || string.IsNullOrEmpty(getUserByIdRequestDTO.password_user))
-                return BadRequest("id and password are required");
+
 
             try
             {
@@ -81,8 +79,7 @@ namespace CRUD.ASP.Usuarios.Extrados.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> UpdateUserById([FromBody] UpdateUserRequest updateUserRequestDTO)
         {
-            if (updateUserRequestDTO.id_user == 0 || string.IsNullOrEmpty(updateUserRequestDTO.name_user))
-                return BadRequest("Name and id are required");
+
             try
             {
 

@@ -16,6 +16,8 @@ namespace AccesData.Repositories
         public string _sqlSelectBookId = "SELECT id_book from [book] where name_book =@Name";
 
         private string _sqlSelectAllNameBook = "SELECT name_book FROM [book] where name_book = @Name";
+
+        private string _sqlDeleteBook = "delete from [book] where name_book = @Name";
         public BookRepository(IOptions<BDConfig> bdConfig)
         {
             _bdConfig = bdConfig.Value;
@@ -45,7 +47,29 @@ namespace AccesData.Repositories
 
 
         }
+        public async Task<int> DataDeleteBookByName(string nameBook)
+        {
+            try
+            {
 
+                using (var connection = new SqlConnection(_bdConfig.ConnectionStrings))
+                {
+                    var parameters = new { Name = nameBook };
+                    var queryDelete = await connection.ExecuteAsync(_sqlDeleteBook, parameters);
+
+
+                    return queryDelete;
+                }
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"error database: {ex.Message}");
+                return 0;
+            }
+
+
+        }
 
         public async Task<int> DataGetIdBook(string nameBook)
         {
